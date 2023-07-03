@@ -5,10 +5,10 @@ from elasticsearch import NotFoundError
 from pydantic import parse_raw_as
 from pydantic.json import pydantic_encoder
 
+from src.db.elastic import ElasticStorage
+from src.db.redis import RedisStorage
 from src.models.base import BaseMixin
 from src.models.film import Film
-from src.core.config import settings
-from src.db.abstract import StorageInterface
 
 
 class BaseService:
@@ -24,8 +24,8 @@ class BaseService:
     model = Film
 
     def __init__(self, elastic, redis):
-        self.elastic: StorageInterface = elastic
-        self.redis = redis
+        self.elastic: ElasticStorage = elastic
+        self.redis: RedisStorage = redis
 
     async def get_by_id(self, _id: str) -> Optional[BaseMixin]:
         """Получение объекта по id
@@ -63,7 +63,7 @@ class BaseService:
         """
         if index_name is None:
             index_name = self.index
-        data = await self.redis.get(f'{index_name}:{_id}')
+        data = await self.redis.get(index_name, _id)
         if not data:
             return None
         if parse_model:
@@ -82,7 +82,7 @@ class BaseService:
         """
         if index_name is None:
             index_name = self.index
-        data = await self.redis.get(f'{index_name}:{query}')
+        data = await self.redis.get(index_name, query)
         if not data:
             return None
         if parse_model:
@@ -97,8 +97,9 @@ class BaseService:
         """
         if index_name is None:
             index_name = self.index
-        await self.redis.set(f'{index_name}:{obj.id}', obj.json(),
-                             settings.FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(index=index_name,
+                             obj=obj.json(),
+                             identifier=str(obj.id))
 
     async def _put_objects_to_cache_by_query(self, query: str,
                                              objs: List[BaseMixin],
@@ -111,5 +112,6 @@ class BaseService:
         if index_name is None:
             index_name = self.index
         redis_data = json.dumps(objs, default=pydantic_encoder)
-        await self.redis.set(f'{index_name}:{query}', redis_data,
-                             settings.FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(index=index_name,
+                             obj=redis_data,
+                             identifier=query)
