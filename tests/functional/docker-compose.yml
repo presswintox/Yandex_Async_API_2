@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  backend:
+    build: ../../.
+    image: backend-image
+    env_file:
+      - ../../.tests.env
+    depends_on:
+      - elastic
+      - redis
+    restart: always
+    ports:
+      - "8000:8000"
+
+  elastic:
+    image: elasticsearch:8.7.0
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: 'false'
+      ES_JAVA_OPTS: "-Xms600m -Xmx600m"
+    ports:
+      - "9200:9200"
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    env_file:
+      - ../../.tests.env
+    ports:
+      - "6379:6379"
+
+  tests:
+    image: backend-image
+    entrypoint: >
+      sh -c "pip install -r ./tests/functional/requirements.txt
+      && python3 ./tests/functional/utils/wait_for_es.py
+      && python3 ./tests/functional/utils/wait_for_redis.py
+      && pytest ./tests/functional/src"
+
+    depends_on:
+        - backend
