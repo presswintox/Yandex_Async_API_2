@@ -2,10 +2,10 @@ from typing import Optional
 
 from elasticsearch import AsyncElasticsearch
 
-from .abstract import StorageInterface
+from .abstract import BaseStorageInterface, SearchStorageInterface
 
 
-class ElasticStorage(StorageInterface):
+class ElasticStorage(BaseStorageInterface, SearchStorageInterface):
     def __init__(self, session: AsyncElasticsearch):
         self.session = session
 
@@ -27,6 +27,6 @@ class ElasticStorage(StorageInterface):
 es: Optional[ElasticStorage] = None
 
 
-async def get_elastic() -> StorageInterface:
+async def get_elastic() -> ElasticStorage:
     """Получение подключения к Elasticsearch"""
     return es

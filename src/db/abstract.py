@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod
 
 
-class StorageInterface(ABC):
-    @abstractmethod
-    async def get(self, index: str, identifier: str = None):
-        pass
+class BaseStorageInterface(ABC):
 
     @abstractmethod
-    async def search(self, **kwargs):
+    async def get(self, index: str, identifier: str = None):
         pass
 
     @abstractmethod
@@ -15,8 +12,15 @@ class StorageInterface(ABC):
         pass
 
 
-class DownloadStorageInterface(ABC):
+class SearchStorageInterface(ABC):
 
     @abstractmethod
-    def put(self, index: str, identifier: str = None):
+    async def search(self, **kwargs):
+        pass
+
+
+class SetStorageInterface(ABC):
+
+    @abstractmethod
+    def set(self, index: str, obj: str, identifier: str = None, **kwargs):
         pass
