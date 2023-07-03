@@ -7,6 +7,7 @@ from src.db import redis
 from src.api.v1 import films, genres, persons
 from src.core.config import settings
 from src.db import elastic
+from src.db.elastic import ElasticStorage
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -20,7 +21,7 @@ app = FastAPI(
 async def startup():
     host = f'http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}'
     redis.redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-    elastic.es = AsyncElasticsearch(hosts=[host])
+    elastic.es = ElasticStorage(AsyncElasticsearch(hosts=[host]))
 
 
 @app.on_event('shutdown')

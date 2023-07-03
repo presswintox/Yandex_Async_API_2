@@ -8,8 +8,10 @@ from pydantic.json import pydantic_encoder
 from src.models.base import BaseMixin
 from src.models.film import Film
 from src.core.config import settings
+from src.db.abstract import StorageInterface
 
-class BaseService():
+
+class BaseService:
     """Базовый сервис для работы с Elasticsearch и Redis
     По умолчанию используется модель Film
 
@@ -22,7 +24,7 @@ class BaseService():
     model = Film
 
     def __init__(self, elastic, redis):
-        self.elastic = elastic
+        self.elastic: StorageInterface = elastic
         self.redis = redis
 
     async def get_by_id(self, _id: str) -> Optional[BaseMixin]:
@@ -45,7 +47,7 @@ class BaseService():
         :param _id: id объекта
         """
         try:
-            object = await self.elastic.get(index=self.index, id=_id)
+            object = await self.elastic.get(index=self.index, identifier=_id)
         except NotFoundError:
             return None
         return self.model(**object.body["_source"])
@@ -87,7 +89,8 @@ class BaseService():
             return parse_raw_as(List[parse_model], data)
         return parse_raw_as(List[self.model], data)
 
-    async def _put_object_to_cache(self, obj: BaseMixin, index_name: str = None):
+    async def _put_object_to_cache(self, obj: BaseMixin,
+                                   index_name: str = None):
         """Сохранение объекта в кеш Redis
 
         :param obj: объект
