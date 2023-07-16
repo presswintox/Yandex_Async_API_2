@@ -1,66 +1,73 @@
-import uuid
-
 import pytest
-from elasticsearch import AsyncElasticsearch
 
 from elasticbuild.pyfiles.moviessettings import ES_SCHEMA
+from tests.functional.testdata.init_data import FILMS_DATA
 from tests.functional.settings import test_settings
-from tests.functional.conftest import es_client, elas_init_index
 
+URL_SEARCH = test_settings.service_url + '/api/v1/films/search'
+INDEX = 'movies'
 
-#  Название теста должно начинаться со слова `test_`
-#  Любой тест с асинхронными вызовами нужно оборачивать декоратором `pytest.mark.asyncio`, который следит за запуском и работой цикла событий.
 
 @pytest.mark.parametrize(
     'query_data, expected_answer',
     [
         (
+            {},
+            {'status': 200, 'length': 10}
+        ),
+        (
                 {'query': 'The Star'},
-                {'status': 200, 'length': 50}
+                {'status': 200, 'length': 10}
         ),
         (
                 {'query': 'Mashed potato'},
+                {'status': 200, 'length': 0}
+        ),
+        (
+                {'query': 'The Star', 'page_size': 5, 'page_number': 1},
+                {'status': 200, 'length': 5}
+        ),
+        (
+                {'query': 'The Star', 'sort': '123123'},
+                {'status': 400, 'length': 1}
+        ),
+        (
+                {'query': '23423423084u0hj045u60'},
                 {'status': 200, 'length': 0}
         )
     ]
 )
 @pytest.mark.asyncio
-async def test_search(es_write_data, make_get_request, elas_init_index,
+async def test_search(es_write_data,
+                      make_get_request,
+                      elas_init_index,
                       query_data: dict,
                       expected_answer: dict):
-    # 1. Генерируем данные для ES
+    await elas_init_index(INDEX, ES_SCHEMA)
+    await es_write_data(INDEX, FILMS_DATA)
+    response, status = await make_get_request(url=URL_SEARCH,
+                                              params=query_data)
 
-    es_data = [{
-        'id': str(uuid.uuid4()),
-        'imdb_rating': 8.5,
-        'genre': [{'id': '97f168bd-d10d-481b-ad38-89d252a13feb',
-                   'name': 'Ben'},
-                  {'id': '97f168bd-d10d-481b-ad38-89d252a13feb',
-                   'name': 'Howard'}],
-        'title': 'The Star',
-        'description': 'New World',
-        'actors_names': ['Ann', 'Bob'],
-        'writers_names': ['Ben', 'Howard'],
-        'actors': [
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name': 'Ann'},
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name': 'Bob'}
-        ],
-        'writers': [
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name': 'Ben'},
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb',
-             'full_name': 'Howard'}
-        ],
-        'directors': [
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name':
-                'Stan'},
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name':
-                'Howard'}
-        ]
-    } for _ in range(60)]
-    await elas_init_index('movies', ES_SCHEMA)
-    await es_write_data(es_data)
-    response, status = await make_get_request(url=test_settings.service_url +
-                                              '/api/v1/films/search',
+    assert status == expected_answer['status']
+    assert len(response) == expected_answer['length']
+
+
+@pytest.mark.parametrize(
+    'query_data, expected_answer',
+    [
+        (
+                {'query': 'The Star', 'page_size': 5, 'page_number': 1},
+                {'status': 200, 'length': 5}
+        )
+    ]
+)
+@pytest.mark.asyncio
+async def test_search_with_redis(redis_write_data,
+                                 make_get_request,
+                                 query_data: dict,
+                                 expected_answer: dict):
+    await redis_write_data(INDEX, query_data, FILMS_DATA)
+    response, status = await make_get_request(url=URL_SEARCH,
                                               params=query_data)
 
     assert status == expected_answer['status']

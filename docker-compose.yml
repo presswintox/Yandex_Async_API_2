@@ -2,6 +2,7 @@ version: '3.8'
 services:
   backend:
     build: .
+    image: backend-image
     env_file:
       - .env
     depends_on:
