@@ -56,6 +56,10 @@ async def test_search(es_write_data,
     'query_data, expected_answer',
     [
         (
+            {},
+            {'status': 200, 'length': 10}
+        ),
+        (
                 {'query': 'The Star', 'page_size': 5, 'page_number': 1},
                 {'status': 200, 'length': 5}
         )
