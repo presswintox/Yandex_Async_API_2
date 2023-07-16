@@ -4,5 +4,3 @@ elasticsearch==8.8.0
 python-dotenv==1.0.0
 pydantic==1.10.7
 backoff==2.2.1
-pytest==7.4.0
-pytest-asyncio==0.21.1
