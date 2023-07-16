@@ -12,7 +12,8 @@ router = APIRouter()
 
 
 @router.get("/search", response_model=List[FilmListDetail],
-            description="Поиск фильмов по названию или описанию")
+            summary="Поиск фильмов",
+            description="Поиск фильмов по названию или описанию.")
 async def search_films(q: FilmSearchQuery = Depends(),
                        film_service: FilmService = Depends(get_film_service)
                        ) -> List[FilmListDetail]:
@@ -26,7 +27,8 @@ async def search_films(q: FilmSearchQuery = Depends(),
 
 
 @router.get("/{film_id}", response_model=FilmDetail,
-            description="Получение детальной информации о фильме")
+            summary="Получение детальной информации о фильме",
+            description="Получение детальной информации о фильме.")
 async def film_details(film_id: UUID,
                        film_service: FilmService = Depends(get_film_service)
                        ) -> FilmDetail:
@@ -40,7 +42,8 @@ async def film_details(film_id: UUID,
 
 
 @router.get("", response_model=List[FilmListDetail],
-            description="Получение списка фильмов")
+            summary="Получение списка фильмов",
+            description="Получение списка фильмов.")
 async def films(query: FilmListQuery = Depends(),
                 film_service: FilmService = Depends(get_film_service)
                 ) -> List[FilmListDetail]:
