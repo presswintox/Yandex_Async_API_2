@@ -16,7 +16,7 @@ class ElasticStorage(BaseStorageInterface, SearchStorageInterface):
         return await self.session.search(
             index=kwargs.get("index"),
             from_=kwargs.get('_from'),
-            size=kwargs.get('page_size'),
+            size=kwargs.get('size'),
             query=kwargs.get('query'),
         )
 

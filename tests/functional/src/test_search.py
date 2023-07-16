@@ -1,30 +1,44 @@
-import datetime
 import uuid
-import json
 
-import aiohttp
 import pytest
-
 from elasticsearch import AsyncElasticsearch
 
+from elasticbuild.pyfiles.moviessettings import ES_SCHEMA
 from tests.functional.settings import test_settings
+from tests.functional.conftest import es_client, elas_init_index
 
 
 #  Название теста должно начинаться со слова `test_`
 #  Любой тест с асинхронными вызовами нужно оборачивать декоратором `pytest.mark.asyncio`, который следит за запуском и работой цикла событий.
 
+@pytest.mark.parametrize(
+    'query_data, expected_answer',
+    [
+        (
+                {'query': 'The Star'},
+                {'status': 200, 'length': 50}
+        ),
+        (
+                {'query': 'Mashed potato'},
+                {'status': 200, 'length': 0}
+        )
+    ]
+)
 @pytest.mark.asyncio
-async def test_search(es_write_data):
+async def test_search(es_write_data, make_get_request, elas_init_index,
+                      query_data: dict,
+                      expected_answer: dict):
     # 1. Генерируем данные для ES
 
     es_data = [{
         'id': str(uuid.uuid4()),
         'imdb_rating': 8.5,
-        'genre': [{'id': '97f168bd-d10d-481b-ad38-89d252a13feb3', 'full_name': 'Ben'},
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name': 'Howard'}],
+        'genre': [{'id': '97f168bd-d10d-481b-ad38-89d252a13feb',
+                   'name': 'Ben'},
+                  {'id': '97f168bd-d10d-481b-ad38-89d252a13feb',
+                   'name': 'Howard'}],
         'title': 'The Star',
         'description': 'New World',
-        'director': ['Stan'],
         'actors_names': ['Ann', 'Bob'],
         'writers_names': ['Ben', 'Howard'],
         'actors': [
@@ -33,26 +47,21 @@ async def test_search(es_write_data):
         ],
         'writers': [
             {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name': 'Ben'},
-            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name': 'Howard'}
+            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb',
+             'full_name': 'Howard'}
         ],
-        'created_at': datetime.datetime.now().isoformat(),
-        'updated_at': datetime.datetime.now().isoformat(),
-        'film_work_type': 'movie'
+        'directors': [
+            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name':
+                'Stan'},
+            {'id': '97f168bd-d10d-481b-ad38-89d252a13feb', 'full_name':
+                'Howard'}
+        ]
     } for _ in range(60)]
-
+    await elas_init_index('movies', ES_SCHEMA)
     await es_write_data(es_data)
+    response, status = await make_get_request(url=test_settings.service_url +
+                                              '/api/v1/films/search',
+                                              params=query_data)
 
-    session = aiohttp.ClientSession()
-    url = test_settings.service_url + '/api/v1/films/search'
-    query_data = {'query': 'The Star'}
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        headers = response.headers
-        status = response.status
-    await session.close()
-
-    # 4. Проверяем ответ
-
-    assert status == 200
-    print(body)
-    assert len(body) == 50
+    assert status == expected_answer['status']
+    assert len(response) == expected_answer['length']
