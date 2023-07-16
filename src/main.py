@@ -15,6 +15,9 @@ app = FastAPI(
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
+    description='API для работы с фильмами, жанрами и участниками. '
+                'Используется полнотекстовый поиск из ElasticSearch.',
+
 )
 
 
@@ -33,9 +36,10 @@ async def shutdown():
     await elastic.es.close()
 
 
-app.include_router(films.router, prefix='/api/v1/films', tags=['films'])
-app.include_router(genres.router, prefix='/api/v1/genres', tags=['genres'])
-app.include_router(persons.router, prefix='/api/v1/persons', tags=['persons'])
+app.include_router(films.router, prefix='/api/v1/films', tags=['Фильмы'])
+app.include_router(genres.router, prefix='/api/v1/genres', tags=['Жанры'])
+app.include_router(persons.router, prefix='/api/v1/persons',
+                   tags=['Участники'])
 
 
 if __name__ == '__main__':

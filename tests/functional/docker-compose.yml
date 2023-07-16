@@ -36,7 +36,9 @@ services:
       sh -c "pip install -r ./tests/functional/requirements.txt
       && python3 ./tests/functional/utils/wait_for_es.py
       && python3 ./tests/functional/utils/wait_for_redis.py
-      && pytest ./tests/functional/src"
+      && pytest -s ./tests/functional/src"
+    env_file:
+      - ../../.tests.env
 
     depends_on:
         - backend

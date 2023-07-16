@@ -14,6 +14,7 @@ router = APIRouter()
 @router.get(
     "/{person_id}/",
     response_model=PersonDetail,
+    summary="Получение детальной информации о персоне",
     description="Получение детальной информации о персоне"
 )
 async def person_details(
@@ -35,6 +36,7 @@ async def person_details(
 @router.get(
     "/{person_id}/film/",
     response_model=List[FilmListDetail],
+    summary="Получение фильмов персоны",
     description="Получение фильмов персоны"
 )
 async def person_films(
@@ -55,7 +57,8 @@ async def person_films(
 @router.get(
     "/search",
     response_model=List[PersonDetail],
-    description="Поиск персон по имени и фамилии"
+    summary="Поиск персон",
+    description="Поиск персон по имени и фамилии."
 )
 async def search_persons(
     query_params: PersonSearchQuery = Depends(),

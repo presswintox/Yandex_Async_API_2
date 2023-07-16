@@ -14,6 +14,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[GenreListDetail],
+            summary="Получение списка жанров",
             description="Получение списка жанров")
 async def genres(
             query: GenreListQuery = Depends(),
@@ -27,6 +28,7 @@ async def genres(
 
 
 @router.get("/search", response_model=List[GenreListDetail],
+            summary="Поиск жанров",
             description="Поиск жанров по названию или описанию")
 async def search_genres(
             q: GenreSearchQuery = Depends(),
@@ -41,7 +43,8 @@ async def search_genres(
 
 
 @router.get("/{genre_id}", response_model=GenreDetail,
-            description="Получение детальной информации о жанре")
+            summary="Получение детальной информации о жанре",
+            description="Получение детальной информации о жанре.")
 async def genre_details(
             genre_id: str,
             genre_service: GenreService = Depends(get_genre_service)
