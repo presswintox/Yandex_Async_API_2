@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 
 from elasticbuild.pyfiles.moviessettings import ES_SCHEMA
@@ -13,27 +15,27 @@ INDEX = 'movies'
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'The Star'},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Mashed potato'},
-                {'status': 200, 'length': 0}
+                {'status': HTTPStatus.OK, 'length': 0}
         ),
         (
                 {'query': 'The Star', 'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'query': 'The Star', 'sort': '123123'},
-                {'status': 400, 'length': 1}
+                {'status': HTTPStatus.BAD_REQUEST, 'length': 1}
         ),
         (
                 {'query': '23423423084u0hj045u60'},
-                {'status': 200, 'length': 0}
+                {'status': HTTPStatus.OK, 'length': 0}
         )
     ]
 )
@@ -57,11 +59,11 @@ async def test_search(es_write_data,
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'The Star', 'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         )
     ]
 )

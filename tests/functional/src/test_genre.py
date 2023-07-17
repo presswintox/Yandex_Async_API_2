@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 
 from elasticbuild.pyfiles.genressettings import ESG_SCHEMA
@@ -14,23 +16,23 @@ FIRST_GENRE_ID = GENRE_DATA[0]['id']
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Sci', 'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 20, 'page_number': 1},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 10, 'page_number': 2},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Not exist genre'},
-                {'status': 200, 'length': 0}
+                {'status': HTTPStatus.OK, 'length': 0}
         )
     ]
 )
@@ -54,19 +56,19 @@ async def test_genres_by_search(es_write_data,
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 20, 'page_number': 1},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 10, 'page_number': 2},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         )
     ]
 )
@@ -90,23 +92,23 @@ async def test_genres(es_write_data,
     [
         (
                 {},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Sci', 'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 20, 'page_number': 1},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 10, 'page_number': 2},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Not exist genre'},
-                {'status': 200, 'length': 0}
+                {'status': HTTPStatus.OK, 'length': 0}
         )
     ]
 )
@@ -129,7 +131,7 @@ async def test_genres_with_redis(redis_write_data,
     [
         (
                 {'id': FIRST_GENRE_ID},
-                {'status': 200}
+                {'status': HTTPStatus.OK}
         )
     ]
 )
