@@ -1,14 +1,14 @@
 from functools import lru_cache
-from typing import Optional, List
+from typing import List
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import NotFoundError
 from fastapi import Depends
-from redis.asyncio.client import Redis
 
-from src.db.redis import get_redis
-from src.services.base import BaseService
+from src.db.abstract import AsyncCacheStorage, AsyncSearchStorage
 from src.db.elastic import get_elastic
+from src.db.redis import get_redis
 from src.models.genre import Genre
+from src.services.base import BaseService
 
 
 class GenreService(BaseService):
@@ -64,7 +64,7 @@ class GenreService(BaseService):
 
         _from = page_size * (page_number - 1)
         try:
-            genres = await self.elastic.search(
+            genres = await self.storage.search(
                                                 index="genres",
                                                 from_=_from,
                                                 size=page_size,
@@ -79,8 +79,8 @@ class GenreService(BaseService):
 
 
 @lru_cache()
-def get_genre_service(elastic: AsyncElasticsearch = Depends(get_elastic),
-                      redis: Optional[Redis] = Depends(get_redis)) \
+def get_genre_service(storage: AsyncSearchStorage = Depends(get_elastic),
+                      cache: AsyncCacheStorage = Depends(get_redis)) \
         -> GenreService:
     """Получение сервиса для работы с жанрами"""
-    return GenreService(elastic, redis)
+    return GenreService(storage, cache)

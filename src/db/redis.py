@@ -1,10 +1,11 @@
 from typing import Optional
+
 from redis.asyncio import Redis
 
-from src.db.abstract import BaseStorageInterface, SetStorageInterface
+from src.db.abstract import AsyncCacheStorage
 
 
-class RedisStorage(BaseStorageInterface, SetStorageInterface):
+class RedisStorage(AsyncCacheStorage):
     def __init__(self, session: Redis, expire_in_seconds: int = None):
         self.expire_in_seconds = expire_in_seconds
         self.session = session

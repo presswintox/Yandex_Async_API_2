@@ -24,3 +24,11 @@ class SetStorageInterface(ABC):
     @abstractmethod
     def set(self, index: str, obj: str, identifier: str = None, **kwargs):
         pass
+
+
+class AsyncCacheStorage(BaseStorageInterface, SetStorageInterface, ABC):
+    pass
+
+
+class AsyncSearchStorage(BaseStorageInterface, SearchStorageInterface, ABC):
+    pass

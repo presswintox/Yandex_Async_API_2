@@ -2,10 +2,10 @@ from typing import Optional
 
 from elasticsearch import AsyncElasticsearch
 
-from .abstract import BaseStorageInterface, SearchStorageInterface
+from .abstract import AsyncSearchStorage
 
 
-class ElasticStorage(BaseStorageInterface, SearchStorageInterface):
+class ElasticStorage(AsyncSearchStorage):
     def __init__(self, session: AsyncElasticsearch):
         self.session = session
 
