@@ -1,12 +1,19 @@
-import time
+import backoff
+from elasticsearch import Elasticsearch, ConnectionError, ConnectionTimeout
 
-from elasticsearch import Elasticsearch
 
-if __name__ == '__main__':
+@backoff.on_exception(
+    backoff.expo, (ConnectionError, ConnectionTimeout)
+)
+def waiter():
+    print('Waiting for ElasticSearch')
     es_client = Elasticsearch(hosts=['http://elastic:9200'],
                               verify_certs=False)
-    while True:
-        if es_client.ping():
-            break
-        print('Waiting for Elasticsearch...')
-        time.sleep(1)
+
+    if not es_client.ping():
+        print('ElasticSearch is not available')
+        raise ConnectionError('ElasticSearch is not available')
+
+
+if __name__ == '__main__':
+    waiter()
