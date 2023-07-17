@@ -2,14 +2,14 @@ import uuid
 from functools import lru_cache
 from typing import List
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import NotFoundError
 from fastapi import Depends
-from redis.asyncio.client import Redis
 
-from src.db.redis import get_redis
-from src.services.base import BaseService
+from src.db.abstract import AsyncCacheStorage, AsyncSearchStorage
 from src.db.elastic import get_elastic
+from src.db.redis import get_redis
 from src.models.film import Film
+from src.services.base import BaseService
 
 
 class FilmService(BaseService):
@@ -83,7 +83,7 @@ class FilmService(BaseService):
 
         _from = page_size * (page_number - 1)
         try:
-            films = await self.elastic.search(index="movies",
+            films = await self.storage.search(index="movies",
                                               sort=sort,
                                               from_=_from,
                                               size=page_size,
@@ -98,8 +98,8 @@ class FilmService(BaseService):
 
 
 @lru_cache()
-def get_film_service(redis: Redis = Depends(get_redis),
-                     elastic: AsyncElasticsearch = Depends(get_elastic)
+def get_film_service(cache: AsyncCacheStorage = Depends(get_redis),
+                     storage: AsyncSearchStorage = Depends(get_elastic)
                      ) -> FilmService:
     """Получение сервиса для работы с фильмами"""
-    return FilmService(elastic, redis)
+    return FilmService(storage, cache)

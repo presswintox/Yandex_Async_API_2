@@ -3,7 +3,7 @@ import pytest
 from elasticbuild.pyfiles.moviessettings import ES_SCHEMA
 from tests.functional.testdata.init_data import FILMS_DATA
 from tests.functional.settings import test_settings
-
+from http import HTTPStatus
 URL_SEARCH = test_settings.service_url + '/api/v1/films/'
 INDEX = 'movies'
 FIRST_FILM_ID = FILMS_DATA[0]['id']
@@ -14,19 +14,19 @@ FIRST_FILM_ID = FILMS_DATA[0]['id']
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 5, 'page_number': 1, 'sort': '123123'},
-                {'status': 400, 'length': 1}
+                {'status': HTTPStatus.BAD_REQUEST, 'length': 1}
         ),
         (
                 {'genre': '97f168bd-d10d-481b-ad38-89d252a13feb'},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         )
     ]
 )
@@ -50,19 +50,19 @@ async def test_films(es_write_data,
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
             {'page_size': 5, 'page_number': 1},
-            {'status': 200, 'length': 5}
+            {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 5, 'page_number': 1, 'sort': '123123'},
-                {'status': 400, 'length': 1}
+                {'status': HTTPStatus.BAD_REQUEST, 'length': 1}
         ),
         (
                 {'genre': '97f168bd-d10d-481b-ad38-89d252a13feb'},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         )
     ]
 )
@@ -84,7 +84,7 @@ async def test_films_with_redis(redis_write_data,
     [
         (
                 {'id': FIRST_FILM_ID},
-                {'status': 200}
+                {'status': HTTPStatus.OK}
         )
     ]
 )

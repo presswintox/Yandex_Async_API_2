@@ -5,27 +5,26 @@ from elasticsearch import NotFoundError
 from pydantic import parse_raw_as
 from pydantic.json import pydantic_encoder
 
-from src.db.elastic import ElasticStorage
-from src.db.redis import RedisStorage
+from src.db.abstract import AsyncCacheStorage, AsyncSearchStorage
 from src.models.base import BaseMixin
 from src.models.film import Film
 
 
 class BaseService:
-    """Базовый сервис для работы с Elasticsearch и Redis
+    """Базовый сервис для работы с хранителями данных и кешом
     По умолчанию используется модель Film
 
-    elastic - подключение к Elasticsearch
-    redis - подключение к Redis
-    index - индекс Elasticsearch
+    storage - подключение к storage данных
+    cache - подключение к хранителю кэша
+    index - индекс в storage
     model - модель данных
     """
     index: str = 'movies'
     model = Film
 
-    def __init__(self, elastic, redis):
-        self.elastic: ElasticStorage = elastic
-        self.redis: RedisStorage = redis
+    def __init__(self, storage, cache):
+        self.storage: AsyncSearchStorage = storage
+        self.cache: AsyncCacheStorage = cache
 
     async def get_by_id(self, _id: str) -> Optional[BaseMixin]:
         """Получение объекта по id
@@ -42,12 +41,12 @@ class BaseService:
         return object
 
     async def _get_object_from_es(self, _id: str) -> Optional[BaseMixin]:
-        """Получение объекта по id из Elasticsearch
+        """Получение объекта по id из Storage
 
         :param _id: id объекта
         """
         try:
-            object = await self.elastic.get(index=self.index, identifier=_id)
+            object = await self.storage.get(index=self.index, identifier=_id)
         except NotFoundError:
             return None
         return self.model(**object.body["_source"])
@@ -56,14 +55,14 @@ class BaseService:
                                  parse_model: Type[BaseMixin] = None,
                                  index_name: str = None) \
             -> Optional[BaseMixin]:
-        """Получение объекта из кеша Redis
+        """Получение объекта из кеша
 
            :param _id: id объекта
            :return: объект модели
         """
         if index_name is None:
             index_name = self.index
-        data = await self.redis.get(index_name, _id)
+        data = await self.cache.get(index_name, _id)
         if not data:
             return None
         if parse_model:
@@ -75,14 +74,14 @@ class BaseService:
                                       parse_model: Type[BaseMixin] = None,
                                       index_name: str = None) \
             -> Optional[List[BaseMixin]]:
-        """Получение объектов по query из кеша Redis
+        """Получение объектов по query из кеша
 
            :param query: поисковый запрос
            :return: cписок объектов фильмов
         """
         if index_name is None:
             index_name = self.index
-        data = await self.redis.get(index_name, query)
+        data = await self.cache.get(index_name, query)
         if not data:
             return None
         if parse_model:
@@ -91,27 +90,27 @@ class BaseService:
 
     async def _put_object_to_cache(self, obj: BaseMixin,
                                    index_name: str = None):
-        """Сохранение объекта в кеш Redis
+        """Сохранение объекта в кеш
 
         :param obj: объект
         """
         if index_name is None:
             index_name = self.index
-        await self.redis.set(index=index_name,
+        await self.cache.set(index=index_name,
                              obj=obj.json(),
                              identifier=str(obj.id))
 
     async def _put_objects_to_cache_by_query(self, query: str,
                                              objs: List[BaseMixin],
                                              index_name: str = None):
-        """Сохранение объектов по query в кеш Redis
+        """Сохранение объектов по query в кеш
 
         :param query: поисковый запрос
         :param objs: объект
         """
         if index_name is None:
             index_name = self.index
-        redis_data = json.dumps(objs, default=pydantic_encoder)
-        await self.redis.set(index=index_name,
-                             obj=redis_data,
+        cache_data = json.dumps(objs, default=pydantic_encoder)
+        await self.cache.set(index=index_name,
+                             obj=cache_data,
                              identifier=query)

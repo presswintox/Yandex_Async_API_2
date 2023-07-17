@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 
 from elasticbuild.pyfiles.moviessettings import ES_SCHEMA
@@ -16,23 +18,23 @@ FIRST_PERSON_ID = PERSONS_DATA[0]['id']
     [
         (
                 {},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Ann', 'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 20, 'page_number': 1},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 10, 'page_number': 2},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Not exist person'},
-                {'status': 200, 'length': 0}
+                {'status': HTTPStatus.OK, 'length': 0}
         )
     ]
 )
@@ -56,23 +58,23 @@ async def test_persons(es_write_data,
     [
         (
             {},
-            {'status': 200, 'length': 10}
+            {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Ann', 'page_size': 5, 'page_number': 1},
-                {'status': 200, 'length': 5}
+                {'status': HTTPStatus.OK, 'length': 5}
         ),
         (
                 {'page_size': 20, 'page_number': 1},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'page_size': 10, 'page_number': 2},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         ),
         (
                 {'query': 'Not exist person'},
-                {'status': 200, 'length': 0}
+                {'status': HTTPStatus.OK, 'length': 0}
         )
     ]
 )
@@ -95,7 +97,7 @@ async def test_persons_with_redis(redis_write_data,
     [
         (
                 {'id': FIRST_PERSON_ID},
-                {'status': 200}
+                {'status': HTTPStatus.OK}
         )
     ]
 )
@@ -118,7 +120,7 @@ async def test_person_by_id(es_write_data,
     [
         (
                 {'id': FIRST_PERSON_ID},
-                {'status': 200, 'length': 10}
+                {'status': HTTPStatus.OK, 'length': 10}
         )
     ]
 )

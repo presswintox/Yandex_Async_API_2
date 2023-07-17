@@ -2,10 +2,10 @@ import uuid
 from functools import lru_cache
 from typing import List
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from elasticsearch import NotFoundError
 from fastapi import Depends
-from redis.asyncio import Redis
 
+from src.db.abstract import AsyncCacheStorage, AsyncSearchStorage
 from src.db.elastic import get_elastic
 from src.db.redis import get_redis
 from src.models.film import Film
@@ -121,7 +121,7 @@ class PersonService(BaseService):
             },
         }
 
-        films = await self.elastic.search(
+        films = await self.storage.search(
             index="movies",
             query=query,
         )
@@ -240,7 +240,7 @@ class PersonService(BaseService):
 
         _from = page_size * (page_number - 1)
         try:
-            persons = await self.elastic.search(
+            persons = await self.storage.search(
                 index="persons",
                 from_=_from,
                 size=page_size,
@@ -256,7 +256,7 @@ class PersonService(BaseService):
 
 @lru_cache()
 def get_person_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
+        cache: AsyncCacheStorage = Depends(get_redis),
+        storage: AsyncSearchStorage = Depends(get_elastic),
 ) -> PersonService:
-    return PersonService(elastic=elastic, redis=redis)
+    return PersonService(storage, cache)
